@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request, Form
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse
+from fastapi.middleware.cors import CORSMiddleware 
 import google.generativeai as genai
 from openai import OpenAI
 from dotenv import load_dotenv
@@ -16,7 +17,7 @@ configure_logging(environment)
 logger = logging.getLogger(__name__)
 
 # Load environment variables
-load_dotenv()
+load_dotenv(override=True)
 
 # Set SSL certificate path
 os.environ['SSL_CERT_FILE'] = certifi.where()
@@ -30,8 +31,20 @@ client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
 app = FastAPI()
 
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # For production, you might want to restrict this
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # Mount static files and templates
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
+
+
 templates = Jinja2Templates(directory="templates")
 
 @app.get("/", response_class=HTMLResponse)

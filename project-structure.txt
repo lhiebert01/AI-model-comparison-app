@@ -1,11 +1,13 @@
-Project Structure Generated on: 2025-02-23 23:53:26.970599
+Project Structure Generated on: 2025-02-24 00:02:44.429672
 Root Directory: C:\src\AI-model-comparison-app
 
 Directory Structure:
 │   ├── .git/
+│   │   ├── COMMIT_EDITMSG
 │   │   ├── config
 │   │   ├── description
 │   │   ├── HEAD
+│   │   ├── index
 │   │   ├── hooks/
 │   │   │   ├── applypatch-msg.sample
 │   │   │   ├── commit-msg.sample
@@ -23,11 +25,54 @@ Directory Structure:
 │   │   │   ├── update.sample
 │   │   ├── info/
 │   │   │   ├── exclude
+│   │   ├── logs/
+│   │   │   ├── HEAD
+│   │   │   ├── refs/
+│   │   │   │   ├── heads/
+│   │   │   │   │   ├── main
+│   │   │   │   ├── remotes/
+│   │   │   │   │   ├── origin/
+│   │   │   │   │   │   ├── main
 │   │   ├── objects/
+│   │   │   ├── 0a/
+│   │   │   │   ├── 0eda67ecb18c9f1d88236251f1b9ba2baa0dc3
+│   │   │   ├── 13/
+│   │   │   │   ├── 2d5a669a78f248d1eed8671069ca0b7c0681ce
+│   │   │   ├── 1e/
+│   │   │   │   ├── 6e3ae6b4ed215ea91959745d92ae9bd852a8f6
+│   │   │   ├── 44/
+│   │   │   │   ├── 56fd7cd10729d1bb2d29c1db0c0170e8f6b4a6
+│   │   │   ├── 47/
+│   │   │   │   ├── 0144ba9a7b72d28e268e2b16c6cb591575cb2d
+│   │   │   │   ├── 86f342c6bc445fa94eeee0c76c356a486b5483
+│   │   │   ├── 55/
+│   │   │   │   ├── 4a282d998617ea5f9d1abe4a4f6181f263ce0d
+│   │   │   ├── 60/
+│   │   │   │   ├── 2f73c14383e91556c2d381e6f62e6abd027f5e
+│   │   │   ├── 85/
+│   │   │   │   ├── d798225f3be81e5663d2fb5962203c63811017
+│   │   │   ├── 9c/
+│   │   │   │   ├── 62057d5743bd867bba6f93c404deff8617580a
+│   │   │   ├── 9f/
+│   │   │   │   ├── e291a59246cbfcef69cc341e38f592b4a7293e
+│   │   │   ├── b3/
+│   │   │   │   ├── 4a723ca4eb94b29287ca02df11611b52cf3053
+│   │   │   ├── df/
+│   │   │   │   ├── 1d8a4d47f317a481377aa80d96612c59a7a837
+│   │   │   ├── e1/
+│   │   │   │   ├── ae2454878cc0bdaabf3b6fd8145355b3f780c7
+│   │   │   ├── f3/
+│   │   │   │   ├── 6be33207fa3aca52164066ddcb1d2c6e8795f0
+│   │   │   ├── fd/
+│   │   │   │   ├── 9714dc974fd6f62b1a88c8d1a98d1e83421fcc
 │   │   │   ├── info/
 │   │   │   ├── pack/
 │   │   ├── refs/
 │   │   │   ├── heads/
+│   │   │   │   ├── main
+│   │   │   ├── remotes/
+│   │   │   │   ├── origin/
+│   │   │   │   │   ├── main
 │   │   │   ├── tags/
 │   ├── static/
 │   │   ├── style.css
@@ -47,4 +92,6 @@ Files in Root Directory:
 ├── logging_config.py
 ├── printproject.py
 ├── project-structure.txt
+├── render.yaml
 ├── requirements.txt
+├── runtime.txt
