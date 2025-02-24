@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Model Comparison</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">AI Model Comparison</h1>
+        
+        <div class="model-select">
+            <button onclick="switchModel('gemini')" class="active" id="gemini-btn">Gemini</button>
+            <button onclick="switchModel('openai')" id="openai-btn">OpenAI</button>
+            <button onclick="saveChat()" id="save-btn" class="save-button">Save Chat</button>
+        </div>
+        
+        <div class="chat-container">
+            <div id="chat-output"></div>
+            <div class="input-container">
+                <input type="text" id="user-input" placeholder="Type your message...">
+                <button onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>Developed by <a href="https://www.linkedin.com/in/lindsayhiebert/" target="_blank">Lindsay Hiebert</a> 
+               <a href="https://github.com/lhiebert01" target="_blank"><i class="fab fa-github"></i></a>
+               <a href="https://www.linkedin.com/in/lindsayhiebert/" target="_blank"><i class="fab fa-linkedin"></i></a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        let currentModel = 'gemini';
+        let chatHistory = [];
+
+        function switchModel(model) {
+            currentModel = model;
+            document.querySelectorAll('.model-select button').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`${model}-btn`).classList.add('active');
+        }
+
+        function addToChat(message, isUser) {
+            const chatOutput = document.getElementById('chat-output');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = isUser ? 'user-message' : 'ai-message';
+            
+            if (!isUser) {
+                const modelLabel = document.createElement('div');
+                modelLabel.className = 'model-label';
+                modelLabel.textContent = currentModel.toUpperCase() + ' Response:';
+                messageDiv.appendChild(modelLabel);
+            }
+
+            const contentDiv = document.createElement('div');
+            if (message.includes('|')) {
+                const tableHtml = message
+                    .split('\n')
+                    .map(row => row.trim())
+                    .filter(row => row.startsWith('|'))
+                    .map(row => {
+                        const cells = row
+                            .split('|')
+                            .filter(cell => cell.trim())
+                            .map(cell => cell.trim());
+                        const isHeader = row.includes('---');
+                        
+                        if (isHeader) return '';
+                        
+                        const cellType = row === message.split('\n')[0] ? 'th' : 'td';
+                        return `<tr>${cells.map(cell => `<${cellType}>${cell.replace(/\n/g, '<br>')}</${cellType}>`).join('')}</tr>`;
+                    })
+                    .join('');
+                contentDiv.innerHTML = `<div class="table-wrapper"><table class="response-table">${tableHtml}</table></div>`;
+            } else {
+                contentDiv.textContent = message;
+            }
+            messageDiv.appendChild(contentDiv);
+            chatOutput.appendChild(messageDiv);
+            chatOutput.scrollTop = chatOutput.scrollHeight;
+            
+            chatHistory.push({
+                role: isUser ? 'User' : currentModel,
+                content: message,
+                timestamp: new Date().toLocaleString()
+            });
+        }
+
+        function saveChat() {
+            const chatText = chatHistory
+                .map(msg => `[${msg.timestamp}] ${msg.role}: ${msg.content}`)
+                .join('\n\n');
+            const blob = new Blob([chatText], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `chat_history_${new Date().toISOString().slice(0,10)}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('user-input');
+            const message = input.value.trim();
+            if (!message) return;
+
+            addToChat(message, true);
+            input.value = '';
+
+            try {
+                const response = await fetch(`/chat/${currentModel}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `message=${encodeURIComponent(message)}`
+                });
+                const data = await response.json();
+                addToChat(data.response, false);
+            } catch (error) {
+                addToChat('Error: Failed to get response', false);
+            }
+        }
+
+        document.getElementById('user-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
