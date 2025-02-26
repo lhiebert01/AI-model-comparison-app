@@ -3,48 +3,253 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Model Comparison</title>
+    <title>🚀AI Model Comparison🚀</title>
     <link rel="stylesheet" href="{{ url_for('static', path='/style.css') }}">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
     <div class="container">
-        <h1 class="title">AI Model Comparison</h1>
+        <div class="header-container">
+            <h1 class="title">  🚀 ✨ AI Model Comparison ✨ 🚀 </h1>
+        </div>
         
-        <div class="model-select">
-            <button onclick="switchModel('gemini')" class="active" id="gemini-btn">Gemini</button>
-            <button onclick="switchModel('openai')" id="openai-btn">OpenAI</button>
-            <button onclick="saveChat()" id="save-btn" class="save-button">Save Chat</button>
+        <div class="button-group model-select">
+            <!-- Main model selection buttons with dropdown menus -->
+            <div class="model-btn-group">
+                <button onclick="switchModel('gemini')" class="active main-btn" id="gemini-btn">
+                    Gemini
+                    <span class="current-model-pill" id="gemini-pill">gemini-2.0-flash</span>
+                </button>
+                <div class="model-dropdown" id="gemini-dropdown">
+                    <div class="dropdown-content">
+                        <!-- Will be populated dynamically -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="model-btn-group">
+                <button onclick="switchModel('openai')" class="main-btn" id="openai-btn">
+                    OpenAI
+                    <span class="current-model-pill" id="openai-pill">gpt-4o</span>
+                </button>
+                <div class="model-dropdown" id="openai-dropdown">
+                    <div class="dropdown-content">
+                        <!-- Will be populated dynamically -->
+                    </div>
+                </div>
+            </div>
+            
+            <button onclick="saveChat()" id="save-btn" class="save-button">
+                <i class="fas fa-save"></i> Save Chat
+            </button>
+            <button onclick="window.open('/docs', '_blank')" class="api-button swagger-button">
+                <i class="fas fa-code"></i> API Docs
+            </button>
+            <button onclick="window.open('/redoc', '_blank')" class="api-button redoc-button">
+                <i class="fas fa-book"></i> ReDoc
+            </button>
         </div>
         
         <div class="chat-container">
             <div id="chat-output"></div>
             <div class="input-container">
-                <input type="text" id="user-input" placeholder="Type your message...">
+                <textarea id="user-input" placeholder="Type your message..." rows="3"></textarea>
                 <button onclick="sendMessage()">Send</button>
             </div>
         </div>
 
         <div class="footer">
-            <p>Developed by <a href="https://www.linkedin.com/in/lindsayhiebert/" target="_blank">Lindsay Hiebert</a> 
+            <p>✨ Developed by ✨  <a href="https://www.linkedin.com/in/lindsayhiebert/" target="_blank">Lindsay Hiebert</a> 
                <a href="https://github.com/lhiebert01" target="_blank"><i class="fab fa-github"></i></a>
                <a href="https://www.linkedin.com/in/lindsayhiebert/" target="_blank"><i class="fab fa-linkedin"></i></a>
             </p>
+            <div class="api-info">
+                <p>
+                    <i class="fas fa-info-circle"></i> 
+                    Access our API documentation via the API Docs buttons to test APIs 
+                </p>
+            </div>
         </div>
     </div>
 
     <script>
         let currentModel = 'gemini';
         let chatHistory = [];
+        let currentGeminiModel = 'gemini-2.0-flash';
+        let currentOpenAIModel = 'gpt-4o';
+        let geminiModels = [];
+        let openaiModels = [];
+        
+        // Load initial model information
+        window.onload = function() {
+            loadGeminiModels();
+            loadOpenAIModels();
+            
+            // Set up click events for dropdown behavior
+            document.addEventListener('click', function(event) {
+                const geminiGroup = document.getElementById('gemini-btn').parentNode;
+                const openaiGroup = document.getElementById('openai-btn').parentNode;
+                const geminiDropdown = document.getElementById('gemini-dropdown');
+                const openaiDropdown = document.getElementById('openai-dropdown');
+                
+                // Handle gemini dropdown
+                if (geminiGroup.contains(event.target)) {
+                    if (event.target.id === 'gemini-btn' || geminiGroup.contains(event.target)) {
+                        geminiDropdown.classList.toggle('show');
+                        openaiDropdown.classList.remove('show');
+                    }
+                } 
+                // Handle openai dropdown
+                else if (openaiGroup.contains(event.target)) {
+                    if (event.target.id === 'openai-btn' || openaiGroup.contains(event.target)) {
+                        openaiDropdown.classList.toggle('show');
+                        geminiDropdown.classList.remove('show');
+                    }
+                } 
+                // Close all dropdowns when clicking elsewhere
+                else {
+                    geminiDropdown.classList.remove('show');
+                    openaiDropdown.classList.remove('show');
+                }
+            });
+        };
+        
+        function loadGeminiModels() {
+            fetch('/models/gemini')
+                .then(response => response.json())
+                .then(data => {
+                    geminiModels = data.models;
+                    currentGeminiModel = data.current_model;
+                    document.getElementById('gemini-pill').textContent = currentGeminiModel;
+                    
+                    // Create model options in dropdown
+                    const dropdown = document.querySelector('#gemini-dropdown .dropdown-content');
+                    dropdown.innerHTML = '';
+                    
+                    geminiModels.forEach(model => {
+                        const option = document.createElement('button');
+                        option.className = 'model-select-btn' + (currentGeminiModel === model.id ? ' active' : '');
+                        option.dataset.modelId = model.id;
+                        option.onclick = function(e) { 
+                            e.stopPropagation();
+                            selectModel('gemini', model.id); 
+                        };
+                        
+                        const modelName = document.createElement('span');
+                        modelName.className = 'model-name';
+                        modelName.textContent = model.name;
+                        
+                        const modelDesc = document.createElement('span');
+                        modelDesc.className = 'model-desc';
+                        modelDesc.textContent = model.description;
+                        
+                        option.appendChild(modelName);
+                        option.appendChild(modelDesc);
+                        dropdown.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading Gemini models:', error);
+                    document.getElementById('gemini-pill').textContent = 'Error';
+                });
+        }
+        
+        function loadOpenAIModels() {
+            fetch('/models/openai')
+                .then(response => response.json())
+                .then(data => {
+                    openaiModels = data.models;
+                    currentOpenAIModel = data.current_model;
+                    document.getElementById('openai-pill').textContent = currentOpenAIModel;
+                    
+                    // Create model options in dropdown
+                    const dropdown = document.querySelector('#openai-dropdown .dropdown-content');
+                    dropdown.innerHTML = '';
+                    
+                    openaiModels.forEach(model => {
+                        const option = document.createElement('button');
+                        option.className = 'model-select-btn' + (currentOpenAIModel === model.id ? ' active' : '');
+                        option.dataset.modelId = model.id;
+                        option.onclick = function(e) { 
+                            e.stopPropagation();
+                            selectModel('openai', model.id); 
+                        };
+                        
+                        const modelName = document.createElement('span');
+                        modelName.className = 'model-name';
+                        modelName.textContent = model.name;
+                        
+                        const modelDesc = document.createElement('span');
+                        modelDesc.className = 'model-desc';
+                        modelDesc.textContent = model.description;
+                        
+                        option.appendChild(modelName);
+                        option.appendChild(modelDesc);
+                        dropdown.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    console.error('Error loading OpenAI models:', error);
+                    document.getElementById('openai-pill').textContent = 'Error';
+                });
+        }
 
         function switchModel(model) {
             currentModel = model;
-            document.querySelectorAll('.model-select button').forEach(btn => btn.classList.remove('active'));
-            document.getElementById(`${model}-btn`).classList.add('active');
+            document.getElementById('gemini-btn').classList.toggle('active', model === 'gemini');
+            document.getElementById('openai-btn').classList.toggle('active', model === 'openai');
+        }
+        
+        function selectModel(provider, modelId) {
+            const formData = new FormData();
+            formData.append('model_id', modelId);
+            
+            fetch(`/set/${provider}-model`, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    if (provider === 'gemini') {
+                        currentGeminiModel = modelId;
+                        document.getElementById('gemini-pill').textContent = modelId;
+                        document.getElementById('gemini-dropdown').classList.remove('show');
+                        
+                        // Update selection in dropdown
+                        document.querySelectorAll('#gemini-dropdown .model-select-btn').forEach(option => {
+                            option.classList.toggle('active', option.dataset.modelId === modelId);
+                        });
+                    } else if (provider === 'openai') {
+                        currentOpenAIModel = modelId;
+                        document.getElementById('openai-pill').textContent = modelId;
+                        document.getElementById('openai-dropdown').classList.remove('show');
+                        
+                        // Update selection in dropdown
+                        document.querySelectorAll('#openai-dropdown .model-select-btn').forEach(option => {
+                            option.classList.toggle('active', option.dataset.modelId === modelId);
+                        });
+                    }
+                    
+                    // Show success message
+                    const chatOutput = document.getElementById('chat-output');
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'system-message';
+                    messageDiv.textContent = `Model changed to ${modelId}`;
+                    chatOutput.appendChild(messageDiv);
+                    chatOutput.scrollTop = chatOutput.scrollHeight;
+                } else {
+                    alert(`Error: ${data.message || 'Failed to change model'}`);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to change model. Please try again.');
+            });
         }
 
-        function addToChat(message, isUser) {
+        function addToChat(message, isUser, modelUsed = null) {
             const chatOutput = document.getElementById('chat-output');
             const messageDiv = document.createElement('div');
             messageDiv.className = isUser ? 'user-message' : 'ai-message';
@@ -52,32 +257,64 @@
             if (!isUser) {
                 const modelLabel = document.createElement('div');
                 modelLabel.className = 'model-label';
-                modelLabel.textContent = currentModel.toUpperCase() + ' Response:';
+                const modelProvider = currentModel.toUpperCase();
+                const modelVersion = modelUsed || (currentModel === 'gemini' ? currentGeminiModel : currentOpenAIModel);
+                modelLabel.textContent = `${modelProvider} (${modelVersion})`;
                 messageDiv.appendChild(modelLabel);
             }
 
             const contentDiv = document.createElement('div');
-            if (message.includes('|')) {
-                const tableHtml = message
-                    .split('\n')
-                    .map(row => row.trim())
-                    .filter(row => row.startsWith('|'))
-                    .map(row => {
-                        const cells = row
-                            .split('|')
-                            .filter(cell => cell.trim())
-                            .map(cell => cell.trim());
-                        const isHeader = row.includes('---');
-                        
-                        if (isHeader) return '';
-                        
-                        const cellType = row === message.split('\n')[0] ? 'th' : 'td';
-                        return `<tr>${cells.map(cell => `<${cellType}>${cell.replace(/\n/g, '<br>')}</${cellType}>`).join('')}</tr>`;
-                    })
-                    .join('');
-                contentDiv.innerHTML = `<div class="table-wrapper"><table class="response-table">${tableHtml}</table></div>`;
+            if (message.includes('|') && message.includes('\n')) {
+                // Process table format
+                const lines = message.split('\n');
+                const tableLines = lines.filter(line => line.trim().startsWith('|'));
+                
+                if (tableLines.length >= 2) { // We need at least header and separator
+                    // Process the table
+                    let tableHtml = '<div class="table-wrapper"><table class="response-table">';
+                    
+                    // Process header
+                    const headerRow = tableLines[0];
+                    const headerCells = headerRow.split('|').filter(cell => cell.trim());
+                    tableHtml += '<thead><tr>';
+                    headerCells.forEach(cell => {
+                        tableHtml += `<th>${cell.trim()}</th>`;
+                    });
+                    tableHtml += '</tr></thead>';
+                    
+                    // Skip separator row (row with dashes)
+                    const dataRows = tableLines.filter((line, index) => 
+                        index !== 0 && !line.includes('---') && line.includes('|')
+                    );
+                    
+                    // Process data rows
+                    tableHtml += '<tbody>';
+                    dataRows.forEach(row => {
+                        const cells = row.split('|').filter(cell => cell.trim());
+                        tableHtml += '<tr>';
+                        cells.forEach(cell => {
+                            // Preserve formatting (bold, italics) by using innerHTML
+                            tableHtml += `<td>${cell.trim()}</td>`;
+                        });
+                        tableHtml += '</tr>';
+                    });
+                    tableHtml += '</tbody></table></div>';
+                    
+                    // Extract text before and after the table
+                    const textBeforeTable = lines.slice(0, lines.indexOf(tableLines[0])).join('<br>');
+                    const textAfterTable = lines.slice(lines.indexOf(tableLines[tableLines.length-1]) + 1).join('<br>');
+                    
+                    // Combine everything
+                    contentDiv.innerHTML = (textBeforeTable ? textBeforeTable + '<br><br>' : '') + 
+                                          tableHtml + 
+                                          (textAfterTable ? '<br><br>' + textAfterTable : '');
+                } else {
+                    // If there's a | character but not enough for a table, format with line breaks
+                    contentDiv.innerHTML = message.replace(/\n/g, '<br>');
+                }
             } else {
-                contentDiv.textContent = message;
+                // Regular text with line breaks
+                contentDiv.innerHTML = message.replace(/\n/g, '<br>');
             }
             messageDiv.appendChild(contentDiv);
             chatOutput.appendChild(messageDiv);
@@ -86,13 +323,17 @@
             chatHistory.push({
                 role: isUser ? 'User' : currentModel,
                 content: message,
-                timestamp: new Date().toLocaleString()
+                timestamp: new Date().toLocaleString(),
+                ...(modelUsed ? { model: modelUsed } : {})
             });
         }
 
         function saveChat() {
             const chatText = chatHistory
-                .map(msg => `[${msg.timestamp}] ${msg.role}: ${msg.content}`)
+                .map(msg => {
+                    const modelInfo = msg.model ? ` [Model: ${msg.model}]` : '';
+                    return `[${msg.timestamp}] ${msg.role}${modelInfo}: ${msg.content}`;
+                })
                 .join('\n\n');
             const blob = new Blob([chatText], { type: 'text/plain' });
             const url = window.URL.createObjectURL(blob);
@@ -114,22 +355,31 @@
             input.value = '';
 
             try {
+                const formData = new FormData();
+                formData.append('message', message);
+                
+                // Include the current model in the request
+                if (currentModel === 'gemini') {
+                    formData.append('model_id', currentGeminiModel);
+                } else if (currentModel === 'openai') {
+                    formData.append('model_id', currentOpenAIModel);
+                }
+                
                 const response = await fetch(`/chat/${currentModel}`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: `message=${encodeURIComponent(message)}`
+                    body: formData
                 });
                 const data = await response.json();
-                addToChat(data.response, false);
+                addToChat(data.response, false, data.model_used);
             } catch (error) {
                 addToChat('Error: Failed to get response', false);
+                console.error('Error sending message:', error);
             }
         }
 
         document.getElementById('user-input').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
                 sendMessage();
             }
         });
